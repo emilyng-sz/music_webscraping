@@ -1,6 +1,6 @@
 # Music Webscraping Code
 
-This was a task to use webscraping techniques to download and store music of specific categories as well as the respective information in a local folder as well as json file. 
+I used webscraping techniques (Python BeautifulSoup package) to download and store music of specific categories as well as the respective information in a local folder as well as json file. 
 
 All music is taken from [Looperman Website](https://www.looperman.com/)
 
