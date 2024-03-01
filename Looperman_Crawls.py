@@ -10,10 +10,12 @@ soup = BeautifulSoup(response.text, 'html.parser')
 
 player_wrappers = soup.find_all('div', class_=lambda x: x and (x.startswith('player-wrapper') or x.startswith('tag-wrapper')))[:1]
 
-for player_wrapper in player_wrappers:
+for div in player_wrappers:
     # Retrieve information within the div
-    player_wrappers = soup.find_all('div', class_=lambda x: x and x.startswith('player-wrapper'))
-
-for player_wrapper in player_wrappers:
-    nested_divs = player_wrapper.find_all('div')
-    print(nested_divs)
+    rel_link = div.get('rel')
+    if rel_link:
+        full_title = rel_link.split('/')[-1].split('.')[0] 
+        title = '-'.join(full_title.split('-')[4:])
+        # the titles will then start with "https://www.looperman.com/media/loops/2273068/looperman-l-2273068-0353864-" "
+        song_dictionary[title] = {'download_link': rel_link}
+        song_dictionary[title]["full_name"] = full_title
