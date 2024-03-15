@@ -15,23 +15,6 @@ while song_counter < MIN_SONGS:
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
 
-    # get song, title and download link
-    player_title_divs = soup.find_all('div', class_=lambda x: x and (x.startswith('player-wrapper') or x == "desc-wrapper")) # 25 for one page
-    for div in player_title_divs:
-        rel_link = div.get('rel')
-        if rel_link:
-            full_title = rel_link.split('/')[-1].split('.')[0] 
-            title = '-'.join(full_title.split('-')[4:])
-            # the titles will then start with "https://www.looperman.com/media/loops/2273068/looperman-l-2273068-0353864-" "
-            song_dictionary[title] = {'download_link': rel_link}
-            song_dictionary[title]["full_name"] = full_title
-
-            # update song_counter
-            song_counter += 1
-
-        if div.get('class')[0] == "desc-wrapper": # this will update the most recently parsed song with description
-            text = div.get_text(strip=True).replace("Description : ", "")
-            song_dictionary[title]['description'] = text if text else ''
 
     # get detailed information of each song located in the tag divs
 
@@ -50,8 +33,9 @@ while song_counter < MIN_SONGS:
         bpm_index = next((i for i, x in enumerate(title_tuple) if 'bpm' in x), None)
         title = '-'.join(title_tuple[:bpm_index-1]) # this assumes the title is followed by 'free', 'bpm' etc 
         if title not in song_dictionary:
-            print(f"Title {title} not found in dictionary")
-            continue
+            #print(f"Title {title} not found in dictionary")
+            #continue
+            song_dictionary[title] = {'download_link': None}
         song_dictionary[title]['url'] = href
         
         # get the tags
@@ -98,6 +82,35 @@ while song_counter < MIN_SONGS:
         else:
             key_text = 'Unknown'
         song_dictionary[title]['key'] = key_text
+    
+    # get song, title and download link
+    player_title_divs = soup.find_all('div', class_=lambda x: x and (x.startswith('player-wrapper') or x == "desc-wrapper")) # 25 for one page
+    for div in player_title_divs:
+        rel_link = div.get('rel')
+        if rel_link:
+            full_title = rel_link.split('/')[-1].split('.')[0].split('-')
+            if 'bpm' in full_title[-1]:
+                title = '-'.join(full_title[4:-2])
+            else:
+                title = '-'.join(full_title[4:])
+
+            # the titles will then start with "https://www.looperman.com/media/loops/2273068/looperman-l-2273068-0353864-" "
+            if title not in song_dictionary:
+                print(f"Title {title} not found in dictionary")
+                print(song_dictionary)
+                continue
+            song_dictionary[title]['download_link'] = rel_link
+            #song_dictionary[title]["full_name"] = full_title
+
+            # update song_counter
+            song_counter += 1
+
+        if div.get('class')[0] == "desc-wrapper": # this will update the most recently parsed song with description
+            text = div.get_text(strip=True).replace("Description : ", "")
+            if title not in song_dictionary:
+                print(f"Title {title} not found in dictionary")
+                continue
+            song_dictionary[title]['description'] = text if text else ''
 
     for title in to_remove:
         del song_dictionary[title]
@@ -109,40 +122,3 @@ def create_directory(directory: str):
         os.makedirs(directory)
         print(f"directory {directory} created")
 
-
-# loop through pages of Looperman website to get songs of desired category in my own format
-song_dictionary = {}
-
-url = f"https://www.looperman.com"
-response = requests.get(url)
-soup = BeautifulSoup(response.text, 'html.parser')
-
-player_wrappers = soup.find_all('div', class_=lambda x: x and (x.startswith('player-wrapper') or x.startswith('tag-wrapper')))[:1]
-
-for div in player_wrappers:
-    # Retrieve information within the div
-    rel_link = div.get('rel')
-    if rel_link:
-        full_title = rel_link.split('/')[-1].split('.')[0] 
-        title = '-'.join(full_title.split('-')[4:])
-        # the titles will then start with "https://www.looperman.com/media/loops/2273068/looperman-l-2273068-0353864-" "
-        song_dictionary[title] = {'download_link': rel_link}
-        song_dictionary[title]["full_name"] = full_title
-
-    tag_divs = soup.find_all('div', class_=lambda x: x and x.startswith('tag'))
-    desired_categories = 'Bass/Bass Guitar/Bass Synth/Bass Wobble/Drum/Flute/Guitar Acoustic/Guitar Electric/Harp/Percussion/Piano/Scratch/Strings/Synth/Violin'.split('/')
-    to_remove = [] # store titles that do not belong in the category
-
-for div in tag_divs:
-    # Find all <a> elements within the current <div> that have href containing the title text
-    links = div.find_all('a', href=lambda href: href and href.startswith('https://www.looperman.com/loops/detail/'))
-    assert len(links) == 1, f"multiple titles in {div}"
-
-    ## get same format as downloaded text
-    href = links[0].get('href')  # Get the value of the href attribute
-    title_tuple = href.split('/')[-1].split('-')
-    bpm_index = next((i for i, x in enumerate(title_tuple) if 'bpm' in x), None)
-    title_tuple = title_tuple[:bpm_index-1]
-    title = '-'.join(title_tuple) # this assumes the title is followed by 'free', 'bpm' etc 
-
-print(song_dictionary)
