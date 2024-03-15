@@ -128,7 +128,6 @@ def create_directory(directory: str):
 create_directory('Looperman_Loops')
 json_dict = {}
 for song in song_dictionary:
-    print("song"   , song)
     category = song_dictionary[song]['category']
     category = category.replace(" ", "_") # use underscores
     create_directory(f'Looperman_Loops/{category}')
