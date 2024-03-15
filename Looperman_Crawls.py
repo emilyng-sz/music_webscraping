@@ -97,10 +97,9 @@ while song_counter < MIN_SONGS:
             # the titles will then start with "https://www.looperman.com/media/loops/2273068/looperman-l-2273068-0353864-" "
             if title not in song_dictionary:
                 print(f"Title {title} not found in dictionary")
-                print(song_dictionary)
                 continue
             song_dictionary[title]['download_link'] = rel_link
-            #song_dictionary[title]["full_name"] = full_title
+            song_dictionary[title]["full_name"] = '-'.join(full_title)
 
             # update song_counter
             song_counter += 1
@@ -116,9 +115,48 @@ while song_counter < MIN_SONGS:
         del song_dictionary[title]
         song_counter -= 1
 
+print(song_dictionary)
+print(song_dictionary.keys())
+
 # function to create directory according to category
 def create_directory(directory: str):
     if not os.path.exists(directory):
         os.makedirs(directory)
         print(f"directory {directory} created")
+
+
+create_directory('Looperman_Loops')
+json_dict = {}
+for song in song_dictionary:
+    print("song"   , song)
+    category = song_dictionary[song]['category']
+    category = category.replace(" ", "_") # use underscores
+    create_directory(f'Looperman_Loops/{category}')
+
+    # download song and write to file
+    download_link = song_dictionary[song]['download_link']
+    response = requests.get(download_link)
+    with open(f'Looperman_Loops/{category}/{song}.wav', 'wb') as f:
+        f.write(response.content)
+
+# c) Create json structured dictionary with all the information (in the same loop)
+
+    if category not in json_dict:
+        json_dict[category] = {}
+
+    full_title = song_dictionary[song]['full_name']
+    song_info = {
+        "bpm": song_dictionary[song]['bpm'],
+        "genre": song_dictionary[song]['genre'],
+        "key": song_dictionary[song]['key'],
+        "description": song_dictionary[song]['description'],
+        "url": song_dictionary[song]['url']
+    }
+    json_dict[category][full_title] = song_info
+
+
+# Save the json dictionary to a json file
+import json
+with open('meta.json', 'w') as f:
+    json.dump(json_dict, f, indent=4)
 
