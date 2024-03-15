@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import os
 
-MIN_SONGS = 200
+MIN_SONGS = 50
 song_counter = 0
 page_counter = 0
 
@@ -144,3 +144,5 @@ for div in tag_divs:
     bpm_index = next((i for i, x in enumerate(title_tuple) if 'bpm' in x), None)
     title_tuple = title_tuple[:bpm_index-1]
     title = '-'.join(title_tuple) # this assumes the title is followed by 'free', 'bpm' etc 
+
+print(song_dictionary)
