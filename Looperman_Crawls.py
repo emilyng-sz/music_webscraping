@@ -1,5 +1,17 @@
 import requests
 from bs4 import BeautifulSoup
+import os
+
+MIN_SONGS = 200
+song_counter = 0
+page_counter = 0
+
+# function to create directory according to category
+def create_directory(directory: str):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+        print(f"directory {directory} created")
+
 
 # loop through pages of Looperman website to get songs of desired category in my own format
 song_dictionary = {}
